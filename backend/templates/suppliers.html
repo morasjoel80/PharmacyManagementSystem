@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Suppliers</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="p-4">
+<div class="container">
+    <h2>Suppliers</h2>
+    <table class="table table-bordered" id="supplierTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Address</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <h4 class="mt-4">Add Supplier</h4>
+    <form onsubmit="addSupplier(event)">
+        <input type="text" class="form-control mb-2" id="s_name" placeholder="Name" required>
+        <input type="text" class="form-control mb-2" id="s_phone" placeholder="Phone" required>
+        <input type="text" class="form-control mb-2" id="s_address" placeholder="Address">
+        <button type="submit" class="btn btn-success">Add</button>
+    </form>
+</div>
+
+<!-- HTML content above -->
+
+<script>
+function fetchSuppliers() {
+    fetch('/suppliers')
+    .then(res => res.json())
+    .then(data => {
+        const table = document.getElementById("supplierTable");
+        const tbody = table.querySelector("tbody");
+        tbody.innerHTML = "";
+        data.forEach(s => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${s.Supplier_ID}</td>
+                    <td>${s.S_name}</td>
+                    <td>${s.Ph_no}</td>
+                    <td>${s.S_address}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteSupplier(${s.Supplier_ID})">Delete</button></td>
+                </tr>
+            `;
+        });
+    });
+}
+
+function addSupplier(event) {
+    event.preventDefault();
+    const name = document.getElementById("s_name").value;
+    const phone = document.getElementById("s_phone").value;
+    const address = document.getElementById("s_address").value;
+
+    fetch('/suppliers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ S_name: name, Ph_no: phone, S_address: address })
+    })
+    .then(() => {
+        fetchSuppliers();
+        document.querySelector("form").reset();
+    });
+}
+
+function deleteSupplier(id) {
+    fetch(`/suppliers/${id}`, { method: 'DELETE' })
+    .then(() => fetchSuppliers());
+}
+
+window.onload = fetchSuppliers;
+</script>
+
+</body>
+</html>
