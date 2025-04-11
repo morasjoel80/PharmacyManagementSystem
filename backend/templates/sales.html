@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sales Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container py-5">
+    <h2>Sales</h2>
+    <button class="btn btn-primary mb-3" onclick="fetchSales()">View Sales</button>
+
+    <table class="table table-bordered" id="salesTable" style="display:none;">
+        <thead>
+            <tr>
+                <th>Sales ID</th>
+                <th>Customer ID</th>
+                <th>Date</th>
+                <th>Total Amount</th>
+                <th>Payment Method ID</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <h4 class="mt-4">Add Sale</h4>
+    <form onsubmit="addSale(event)">
+        <input type="number" class="form-control mb-2" id="customer_id" placeholder="Customer ID" required>
+        <input type="date" class="form-control mb-2" id="sale_date" required>
+        <input type="number" step="0.01" class="form-control mb-2" id="total_amount" placeholder="Total Amount" required>
+        <input type="number" class="form-control mb-2" id="payment_method_id" placeholder="Payment Method ID" required>
+        <button type="submit" class="btn btn-success">Add Sale</button>
+    </form>
+
+<script>
+function fetchSales() {
+    fetch('/sales')
+    .then(res => res.json())
+    .then(data => {
+        const table = document.getElementById("salesTable");
+        const tbody = table.querySelector("tbody");
+        tbody.innerHTML = "";
+        data.forEach(s => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${s.Sales_ID}</td>
+                    <td>${s.Customer_ID}</td>
+                    <td>${s.Date}</td>
+                    <td>${s.Total_amount}</td>
+                    <td>${s.Payment_Method_ID}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteSale(${s.Sales_ID})">Delete</button></td>
+                </tr>
+            `;
+        });
+        table.style.display = "table";
+    });
+}
+
+function addSale(event) {
+    event.preventDefault();
+    const customer_id = document.getElementById("customer_id").value;
+    const date = document.getElementById("sale_date").value;
+    const total_amount = document.getElementById("total_amount").value;
+    const payment_method_id = document.getElementById("payment_method_id").value;
+
+    fetch('/sales', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            Customer_ID: customer_id,
+            Date: date,
+            Total_amount: total_amount,
+            Payment_Method_ID: payment_method_id
+        })
+    })
+    .then(() => fetchSales());
+}
+
+function deleteSale(id) {
+    fetch(`/sales/${id}`, {
+        method: 'DELETE'
+    }).then(() => fetchSales());
+}
+</script>
+</body>
+</html>

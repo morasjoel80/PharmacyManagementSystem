@@ -145,21 +145,72 @@ def get_medicines():
 def add_medicine():
     data = request.get_json()
 
+    # Extract and validate fields
+    m_name = data.get('M_Name')
+    price = data.get('Price')
+    quantity = data.get('Quantity_in_stock')
+    expiry = data.get('Expiry_date')
+    supplier_id = data.get('Supplier_ID')
+    category = data.get('Category')
+
+    # Ensure required fields are present (optional, since schema allows NULL)
+    if not all([m_name, price, quantity, expiry, supplier_id, category]):
+        return jsonify({'error': 'Missing required fields'}), 400
+
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO medicines (Medicine_Name, Medicine_Description, Price, Quantity)
-        VALUES (%s, %s, %s, %s)
-    """, (data['Medicine_Name'], data['Medicine_Description'], data['Price'], data['Quantity']))
-
+        INSERT INTO medicine (M_Name, Price, Quantity_in_stock, Expiry_date, Supplier_ID, Category)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """, (m_name, price, quantity, expiry, supplier_id, category))
     conn.commit()
-    return jsonify({'message': 'Medicine added successfully'}), 201
-
+    return jsonify({'message': 'Medicine added successfully'})
 @app.route('/medicines/<int:id>', methods=['DELETE'])
 def delete_medicine(id):
     cursor = conn.cursor()
     cursor.execute("DELETE FROM medicines WHERE Medicine_ID = %s", (id,))
     conn.commit()
     return jsonify({'message': 'Medicine deleted successfully'})
+
+@app.route('/sales-page')
+def sales_page():
+    if 'user' not in session:
+        return redirect('/login')
+    return render_template('sales.html')
+
+@app.route('/sales', methods=['GET'])
+def get_sales():
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT * FROM sales
+    """)
+    sales = cursor.fetchall()
+    return jsonify(sales)
+
+@app.route('/sales', methods=['POST'])
+def add_sale():
+    data = request.get_json()
+    customer_id = data.get('Customer_ID')
+    date = data.get('Date')
+    total_amount = data.get('Total_amount')
+    payment_method_id = data.get('Payment_Method_ID')
+
+    if not all([customer_id, date, total_amount, payment_method_id]):
+        return jsonify({'error': 'Missing required fields'}), 400
+
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO sales (Customer_ID, Date, Total_amount, Payment_Method_ID)
+        VALUES (%s, %s, %s, %s)
+    """, (customer_id, date, total_amount, payment_method_id))
+    conn.commit()
+    return jsonify({'message': 'Sale recorded successfully'})
+
+@app.route('/sales/<int:id>', methods=['DELETE'])
+def delete_sale(id):
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM sales WHERE Sales_ID = %s", (id,))
+    conn.commit()
+    return jsonify({'message': 'Sale deleted successfully'})
 
 if __name__ == '__main__':
     app.run(debug=True)

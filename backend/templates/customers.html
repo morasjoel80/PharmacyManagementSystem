@@ -8,7 +8,13 @@
 </head>
 <body class="container py-5">
     <h2>Customers</h2>
-    <button class="btn btn-primary mb-3" onclick="fetchCustomers()">View Customers</button>
+
+    <!-- Search bar -->
+    <div class="mb-3">
+        <input type="text" id="searchInput" class="form-control" placeholder="Search customers by name..." onkeyup="searchCustomers()">
+    </div>
+
+    <button class="btn btn-primary mb-3" onclick="fetchCustomers()">View All Customers</button>
 
     <table class="table table-bordered" id="customerTable" style="display:none;">
         <thead>
@@ -36,28 +42,45 @@
     </form>
 
 <script>
+let allCustomers = [];
+
 function fetchCustomers() {
     fetch('/customers')
     .then(res => res.json())
     .then(data => {
-        const table = document.getElementById("customerTable");
-        const tbody = table.querySelector("tbody");
-        tbody.innerHTML = "";
-        data.forEach(c => {
-            tbody.innerHTML += `
-                <tr>
-                    <td>${c.Customer_ID}</td>
-                    <td>${c.User_ID}</td>
-                    <td>${c.C_Name}</td>
-                    <td>${c.C_Email}</td>
-                    <td>${c.PhoneNumber}</td>
-                    <td>${c.Address}</td>
-                    <td><button class="btn btn-danger btn-sm" onclick="deleteCustomer(${c.Customer_ID})">Delete</button></td>
-                </tr>
-            `;
-        });
-        table.style.display = "table";
+        allCustomers = data;
+        displayCustomers(data);
     });
+}
+
+function displayCustomers(customers) {
+    const table = document.getElementById("customerTable");
+    const tbody = table.querySelector("tbody");
+    tbody.innerHTML = "";
+
+    customers.forEach(c => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${c.Customer_ID}</td>
+                <td>${c.User_ID}</td>
+                <td>${c.C_Name}</td>
+                <td>${c.C_Email}</td>
+                <td>${c.PhoneNumber}</td>
+                <td>${c.Address}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="deleteCustomer(${c.Customer_ID})">Delete</button></td>
+            </tr>
+        `;
+    });
+
+    table.style.display = customers.length > 0 ? "table" : "none";
+}
+
+function searchCustomers() {
+    const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+    const filtered = allCustomers.filter(c =>
+        c.C_Name && c.C_Name.toLowerCase().includes(searchTerm)
+    );
+    displayCustomers(filtered);
 }
 
 function addCustomer(event) {
@@ -80,22 +103,14 @@ function addCustomer(event) {
             Address: address
         })
     })
-    .then(() => {
-        fetchCustomers();
-    })
-    .catch(err => {
-        console.error("Error adding customer:", err);
-    });
+    .then(() => fetchCustomers())
+    .catch(err => console.error("Error adding customer:", err));
 }
 
 function deleteCustomer(id) {
     fetch(`/customers/${id}`, { method: 'DELETE' })
-    .then(() => {
-        fetchCustomers();
-    })
-    .catch(err => {
-        console.error("Error deleting customer:", err);
-    });
+    .then(() => fetchCustomers())
+    .catch(err => console.error("Error deleting customer:", err));
 }
 </script>
 </body>
