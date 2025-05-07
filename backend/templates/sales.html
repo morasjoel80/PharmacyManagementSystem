@@ -23,6 +23,7 @@
         <tbody></tbody>
     </table>
 
+    <!-- Add Sale Form -->
     <h4 class="mt-4">Add Sale</h4>
     <form onsubmit="addSale(event)">
         <input type="number" class="form-control mb-2" id="customer_id" placeholder="Customer ID" required>
@@ -30,6 +31,17 @@
         <input type="number" step="0.01" class="form-control mb-2" id="total_amount" placeholder="Total Amount" required>
         <input type="number" class="form-control mb-2" id="payment_method_id" placeholder="Payment Method ID" required>
         <button type="submit" class="btn btn-success">Add Sale</button>
+    </form>
+
+    <!-- Edit Sale Form (Hidden initially) -->
+    <h4 class="mt-4" id="editFormHeading" style="display:none;">Edit Sale</h4>
+    <form id="editForm" onsubmit="editSale(event)" style="display:none;">
+        <input type="hidden" id="edit_sale_id">
+        <input type="number" class="form-control mb-2" id="edit_customer_id" placeholder="Customer ID" required>
+        <input type="date" class="form-control mb-2" id="edit_sale_date" required>
+        <input type="number" step="0.01" class="form-control mb-2" id="edit_total_amount" placeholder="Total Amount" required>
+        <input type="number" class="form-control mb-2" id="edit_payment_method_id" placeholder="Payment Method ID" required>
+        <button type="submit" class="btn btn-primary">Update Sale</button>
     </form>
 
 <script>
@@ -48,7 +60,10 @@ function fetchSales() {
                     <td>${s.Date}</td>
                     <td>${s.Total_amount}</td>
                     <td>${s.Payment_Method_ID}</td>
-                    <td><button class="btn btn-danger btn-sm" onclick="deleteSale(${s.Sales_ID})">Delete</button></td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="loadSaleDetails(${s.Sales_ID})">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteSale(${s.Sales_ID})">Delete</button>
+                    </td>
                 </tr>
             `;
         });
@@ -80,6 +95,57 @@ function deleteSale(id) {
     fetch(`/sales/${id}`, {
         method: 'DELETE'
     }).then(() => fetchSales());
+}
+
+function loadSaleDetails(id) {
+    fetch(`/sales/${id}`, { method: 'GET' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);  // Show error if not found
+            } else {
+                // Show edit form and hide add form
+                document.getElementById("editFormHeading").style.display = "block";
+                document.getElementById("editForm").style.display = "block";
+                document.getElementById("customer_id").style.display = "none";
+                document.getElementById("sale_date").style.display = "none";
+                document.getElementById("total_amount").style.display = "none";
+                document.getElementById("payment_method_id").style.display = "none";
+
+                // Prefill the form fields with existing sale data
+                document.getElementById("edit_sale_id").value = data.Sales_ID;
+                document.getElementById("edit_customer_id").value = data.Customer_ID;
+                document.getElementById("edit_sale_date").value = data.Date;
+                document.getElementById("edit_total_amount").value = data.Total_amount;
+                document.getElementById("edit_payment_method_id").value = data.Payment_Method_ID;
+            }
+        });
+}
+
+function editSale(event) {
+    event.preventDefault();
+    const sale_id = document.getElementById("edit_sale_id").value;
+    const customer_id = document.getElementById("edit_customer_id").value;
+    const date = document.getElementById("edit_sale_date").value;
+    const total_amount = document.getElementById("edit_total_amount").value;
+    const payment_method_id = document.getElementById("edit_payment_method_id").value;
+
+    fetch(`/sales/${sale_id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            Customer_ID: customer_id,
+            Date: date,
+            Total_amount: total_amount,
+            Payment_Method_ID: payment_method_id
+        })
+    })
+    .then(() => {
+        fetchSales();  // Refresh the sales data after updating
+        document.getElementById("editForm").style.display = "none";  // Hide the edit form
+        document.getElementById("editFormHeading").style.display = "none";  // Hide the heading
+        alert("Sale updated successfully");
+    });
 }
 </script>
 </body>

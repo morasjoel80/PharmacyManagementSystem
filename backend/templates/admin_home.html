@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pharmacy Management System - Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(to right, #f8f9fa, #e3f2fd);
+        }
+        .dashboard-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: none;
+            border-radius: 12px;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        .dashboard-card i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #0d6efd;
+        }
+        .disabled-card {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .card-body {
+            padding: 30px 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary px-4">
+        <a class="navbar-brand fw-bold" href="#">Pharmacy Management</a>
+        <div class="ms-auto">
+            <span class="navbar-text text-white me-3">Welcome, {{ user }}</span>
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-light">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h2 class="mb-4 text-primary fw-semibold">Dashboard</h2>
+        <div class="row g-4">
+
+            <!-- Active Modules -->
+            {% set cards = [
+                ('customers_page', 'Customers', 'Manage customer data', 'fa-users'),
+                ('medicines_page', 'Medicines', 'View and add medicines', 'fa-capsules'),
+                ('sales_page', 'Sales', 'Track and record sales', 'fa-chart-line'),
+                ('inventory_page', 'Inventory', 'Manage inventory items', 'fa-boxes-stacked'),
+                ('employees_page', 'Employees', 'Manage employee data', 'fa-user-tie'),
+                ('orders_page', 'Orders', 'View and manage orders', 'fa-file-invoice'),
+                ('payment_methods_page', 'Payment Methods', 'Configure payment methods', 'fa-credit-card'),
+                ('prescriptions_page', 'Prescriptions', 'View and manage prescriptions', 'fa-prescription'),
+                ('suppliers_page', 'Suppliers', 'Manage suppliers', 'fa-truck-medical'),
+                ('users_page', 'Users', 'Manage system users', 'fa-user-cog')
+            ] %}
+
+            {% for route, title, desc, icon in cards %}
+            <div class="col-md-4">
+                <a href="{{ url_for(route) }}" class="text-decoration-none">
+                    <div class="card dashboard-card text-center shadow-sm bg-white">
+                        <div class="card-body">
+                            <i class="fas {{ icon }}"></i>
+                            <h5 class="card-title">{{ title }}</h5>
+                            <p class="card-text">{{ desc }}</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

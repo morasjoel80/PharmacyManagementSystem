@@ -52,7 +52,8 @@ function fetchCustomers() {
     .then(data => {
         allCustomers = data;
         displayCustomers(data);
-    });
+    })
+    .catch(err => console.error("Error fetching customers:", err));
 }
 
 function displayCustomers(customers) {

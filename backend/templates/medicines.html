@@ -29,87 +29,121 @@
         <tbody></tbody>
     </table>
 
-    <h4 class="mt-4">Add Medicine</h4>
-    <form onsubmit="addMedicine(event)">
-        <input type="text" class="form-control mb-2" id="m_name" placeholder="Medicine Name" required>
-        <input type="number" step="0.01" class="form-control mb-2" id="price" placeholder="Price" required>
-        <input type="number" class="form-control mb-2" id="quantity" placeholder="Quantity in Stock" required>
-        <input type="date" class="form-control mb-2" id="expiry" required>
-        <input type="number" class="form-control mb-2" id="supplier_id" placeholder="Supplier ID" required>
-        <input type="text" class="form-control mb-2" id="category" placeholder="Category" required>
-        <button type="submit" class="btn btn-success">Add Medicine</button>
+    <h4 class="mt-4" id="formTitle">Add Medicine</h4>
+    <form onsubmit="submitMedicine(event)">
+        <input type="hidden" id="medicine_id">
+
+        <input type="text" class="form-control mb-2" id="M_Name" placeholder="Medicine Name" required>
+        <input type="number" step="0.01" class="form-control mb-2" id="Price" placeholder="Price" required>
+        <input type="number" class="form-control mb-2" id="Quantity_in_stock" placeholder="Quantity in Stock" required>
+        <input type="date" class="form-control mb-2" id="Expiry_date" required>
+        <input type="number" class="form-control mb-2" id="Supplier_ID" placeholder="Supplier ID" required>
+        <input type="text" class="form-control mb-2" id="Category" placeholder="Category" required>
+        <button type="submit" class="btn btn-success" id="submitButton">Add Medicine</button>
+        <button type="button" class="btn btn-secondary ms-2" onclick="resetForm()">Cancel</button>
     </form>
 
-    <script>
-        let allMedicines = [];
+<script>
+    let allMedicines = [];
 
-        function fetchMedicines() {
-            fetch('/medicines')
-                .then(res => res.json())
-                .then(data => {
-                    allMedicines = data;
-                    displayMedicines(data);
-                });
-        }
-
-        function displayMedicines(medicines) {
-            const table = document.getElementById("medicineTable");
-            const tbody = table.querySelector("tbody");
-            tbody.innerHTML = "";
-
-            medicines.forEach(m => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${m.Medicine_ID}</td>
-                        <td>${m.M_Name}</td>
-                        <td>${m.Price}</td>
-                        <td>${m.Quantity_in_stock}</td>
-                        <td>${m.Expiry_date}</td>
-                        <td>${m.Supplier_ID}</td>
-                        <td>${m.Category}</td>
-                        <td><button class="btn btn-danger btn-sm" onclick="deleteMedicine(${m.Medicine_ID})">Delete</button></td>
-                    </tr>
-                `;
-            });
-            table.style.display = "table";
-        }
-
-        function searchMedicines() {
-            const search = document.getElementById("searchInput").value.toLowerCase();
-            const filtered = allMedicines.filter(med =>
-                med.M_Name.toLowerCase().includes(search)
-            );
-            displayMedicines(filtered);
-        }
-
-        function addMedicine(event) {
-            event.preventDefault();
-            const data = {
-                M_Name: document.getElementById("m_name").value,
-                Price: parseFloat(document.getElementById("price").value),
-                Quantity_in_stock: parseInt(document.getElementById("quantity").value),
-                Expiry_date: document.getElementById("expiry").value,
-                Supplier_ID: parseInt(document.getElementById("supplier_id").value),
-                Category: document.getElementById("category").value
-            };
-
-            fetch('/medicines', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            }).then(() => fetchMedicines());
-        }
-
-        function deleteMedicine(id) {
-            fetch(`/medicines/${id}`, {
-                method: 'DELETE'
-            })
+    function fetchMedicines() {
+        fetch('/medicines')
             .then(res => res.json())
             .then(data => {
-                alert(data.message);
-                fetchMedicines();
+                allMedicines = data;
+                displayMedicines(data);
             });
-        }
-    </script>
+    }
+
+    function displayMedicines(medicines) {
+        const table = document.getElementById("medicineTable");
+        const tbody = table.querySelector("tbody");
+        tbody.innerHTML = "";
+
+        medicines.forEach(m => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${m.Medicine_ID}</td>
+                    <td>${m.M_Name}</td>
+                    <td>${m.Price}</td>
+                    <td>${m.Quantity_in_stock}</td>
+                    <td>${m.Expiry_date}</td>
+                    <td>${m.Supplier_ID}</td>
+                    <td>${m.Category}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm me-1" onclick='editMedicine(${JSON.stringify(m)})'>Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteMedicine(${m.Medicine_ID})">Delete</button>
+                    </td>
+                </tr>
+            `;
+        });
+        table.style.display = "table";
+    }
+
+    function searchMedicines() {
+        const search = document.getElementById("searchInput").value.toLowerCase();
+        const filtered = allMedicines.filter(med =>
+            med.M_Name.toLowerCase().includes(search)
+        );
+        displayMedicines(filtered);
+    }
+
+    function submitMedicine(event) {
+        event.preventDefault();
+
+        const id = document.getElementById("medicine_id").value;
+        const data = {
+            M_Name: document.getElementById("M_Name").value,
+            Price: parseFloat(document.getElementById("Price").value),
+            Quantity_in_stock: parseInt(document.getElementById("Quantity_in_stock").value),
+            Expiry_date: document.getElementById("Expiry_date").value,
+            Supplier_ID: parseInt(document.getElementById("Supplier_ID").value),
+            Category: document.getElementById("Category").value
+        };
+
+        const url = id ? `/medicines/${id}` : '/medicines';
+        const method = id ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        }).then(() => {
+            resetForm();
+            fetchMedicines();
+        });
+    }
+
+    function editMedicine(medicine) {
+        document.getElementById("medicine_id").value = medicine.Medicine_ID;
+        document.getElementById("M_Name").value = medicine.M_Name;
+        document.getElementById("Price").value = medicine.Price;
+        document.getElementById("Quantity_in_stock").value = medicine.Quantity_in_stock;
+        document.getElementById("Expiry_date").value = medicine.Expiry_date;
+        document.getElementById("Supplier_ID").value = medicine.Supplier_ID;
+        document.getElementById("Category").value = medicine.Category;
+
+        document.getElementById("formTitle").innerText = "Edit Medicine";
+        document.getElementById("submitButton").innerText = "Update Medicine";
+    }
+
+    function resetForm() {
+        document.getElementById("medicine_id").value = "";
+        document.querySelector("form").reset();
+        document.getElementById("formTitle").innerText = "Add Medicine";
+        document.getElementById("submitButton").innerText = "Add Medicine";
+    }
+
+    function deleteMedicine(id) {
+        fetch(`/medicines/${id}`, {
+            method: 'DELETE'
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            fetchMedicines();
+        });
+    }
+</script>
 </body>
 </html>
